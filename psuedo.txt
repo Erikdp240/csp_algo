@@ -1,0 +1,72 @@
+function BACKTRACKING-SEARCH(csp) -> a solution or failure:
+  return BACKTRACK(csp, {})
+
+function BACKTRACK(csp, assignment) -> solution or failure:
+  if assignment is complete:
+    return assignment
+  
+  var = SELECT-UNASSIGNED-VARIABLE(csp, assignment)
+
+  for each value in ORDER-DOMAIN-VALUES(csp, var, assignment):
+    if value is consistent with assignment:
+      add{var = value} to assignment
+
+      inferences = INFERENCE(csp, var, assignment)
+
+      if inferences != failure:
+        add inferences to csp
+        
+        result = BACKTRACK(csp, assignment)
+
+        if result != failure:
+          return result
+        
+        remove inferences from csp
+      remove {var=value} from assignment
+  return failure
+
+SELECT-UNASSIGNED-VARIABLE should always pick next zone VARIABLE
+
+ORDER-DOMAIN-VALUES should order ALL POSSIBLE domain values alphabetically
+
+INFERENCE outcome is going to be based on previous zone variable assignment
+
+
+
+def inference(csp, var, assigment):
+  pass
+
+def order_domain_values(csp, var, assignment):
+  pass
+
+def select_unassigned_variable(csp, assignment):
+  pass
+
+def backtrack(csp, assignment):
+  if assignment is not None:
+    return assignment
+  
+  var = select_unassigned_variable(csp, assignment)
+
+  for value in order_domain_values(csp, var, assignment):
+    if value == assignment:
+      # add {var = value} to assignment
+
+      inferences = inference(csp, var, assignment)
+
+      if inferences != failure:
+        csp = csp + inferences
+
+        result = backtrack(csp, assignment)
+
+        if result != failure:
+          return result
+        
+        # remove inferences from csp
+
+      # remove {var = value} from assignment
+
+  return failure
+
+def backtracking_search(csp):
+  return backtrack(csp)
