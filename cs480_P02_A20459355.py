@@ -40,15 +40,13 @@ def read_parks_zone_file(file_name):
 
   return data
 
-def is_complete(csp, assignment):
+def is_complete(csp, assignment, parks_visited):
   # All zone variables have a valid value assigned to it
   # Parks visited >= Number of parks
   for zone in csp['zones']:
     if zone not in assignment:
       return False
   
-  parks_visited = sum(csp['parks'][state] for state in assignment.values())
-
   return parks_visited >= csp['no_of_parks']
 
 def select_unassigned_variable(csp, assignment):
@@ -63,7 +61,7 @@ def order_domain_values(csp, var):
   # Order all POSSIBLE domain values (next states) alphabetically
   return sorted(csp['domains'][var])
 
-def is_consistent(csp, var, value, assignment):
+def is_consistent(csp, var, value, assignment, parks_visited):
   current_zone = var
   index = csp['zones'].index(current_zone)
 
@@ -82,6 +80,12 @@ def is_consistent(csp, var, value, assignment):
     road_distance = csp['distances'].get(previous_state, {}).get(current_state, -1)
 
     if road_distance == -1:
+      return False
+    
+  current_parks_visited = parks_visited + csp['parks'].get(value, 0)
+
+  if len(assignment) == len(csp['zones']) - 1:
+    if current_parks_visited < csp['no_of_parks']:
       return False
   
   return True
@@ -119,22 +123,23 @@ def remove_inferences(csp, inferences):
       if state not in csp['domains'][zone]:
         csp['domains'][zone].append(state)
 
-def backtrack(csp, assignment):
-  if is_complete(csp, assignment):
+def backtrack(csp, assignment, parks_visited=0):
+  if is_complete(csp, assignment, parks_visited):
     return assignment
   
   var = select_unassigned_variable(csp, assignment)
 
   for value in order_domain_values(csp, var):
-    if is_consistent(csp, var, value, assignment):
+    if is_consistent(csp, var, value, assignment, parks_visited):
       assignment[var] = value
+      updated_parks_visited = parks_visited + csp['parks'].get(value, 0)
 
       inferences = inference(csp, var, assignment)
 
       if inferences != 'failure':
         add_inferences(csp, inferences)
 
-        result = backtrack(csp, assignment)
+        result = backtrack(csp, assignment, updated_parks_visited)
 
         if result != 'failure':
           return result
